@@ -15,8 +15,10 @@ platforms = ["win-64"]
 
 [tool.pixi.pypi-dependencies]
 dotnetversionize = { path = ".", editable = true }
+build = "*"
 
 [tool.pixi.tasks]
+build = "python -m build --outdir dist/"
 
 [tool.pixi.feature.dev.dependencies]
 commitizen = "*"
