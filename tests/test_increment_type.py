@@ -5,13 +5,16 @@ class TestIncrementType:
     def test_increment_type(self):
 
         assert IncrementType.PATCH.name == "PATCH"
-        assert IncrementType.PATCH.value == 1
+        assert IncrementType.PATCH.value == 2
 
         assert IncrementType.MINOR.name == "MINOR"
-        assert IncrementType.MINOR.value == 2
+        assert IncrementType.MINOR.value == 1
 
         assert IncrementType.MAJOR.name == "MAJOR"
-        assert IncrementType.MAJOR.value == 3
+        assert IncrementType.MAJOR.value == 0
+
+        assert IncrementType.NONE.name == "NONE"
+        assert IncrementType.NONE.value == 99
 
     @pytest.mark.parametrize("commit_message, expected_increment", 
     [

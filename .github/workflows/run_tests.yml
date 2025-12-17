@@ -25,11 +25,7 @@ jobs:
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
           environments: ${{ matrix.environment }}
 
-      - name: Install Dependencies
-        run: pixi install
-        if: steps.cache.outputs.cache-hit != 'true'
-
-      - name: Build package
-        run: pixi run -e dev build
+      - name: Run tests
+        run: pixi run -e ${{ matrix.environment }} test -n auto
         if: steps.cache.outputs.cache-hit != 'true'
         
