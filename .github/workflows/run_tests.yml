@@ -26,6 +26,6 @@ jobs:
           environments: ${{ matrix.environment }}
 
       - name: Run tests
-        run: pixi run -e ${{ matrix.environment }} test -n auto
+        run: pixi run -e ${{ matrix.environment }} pytest tests -n auto
         if: steps.cache.outputs.cache-hit != 'true'
         
