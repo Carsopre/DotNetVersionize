@@ -50,6 +50,10 @@ py311 = ["py311", "default"]
 py312 = ["py312", "default"]
 py313 = ["py313", "default"]
 py314 = ["py314", "default"]
+test311 = ["py311", "test", "default"]
+test312 = ["py312", "test", "default"]
+test313 = ["py313", "test", "default"]
+test314 = ["py314", "test", "default"]
 
 [tool.black]
 line-length = 88
