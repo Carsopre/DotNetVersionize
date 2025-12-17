@@ -1,0 +1,93 @@
+[project]
+authors = [{name = "Carles S. Soriano Pérez", email = "sorianoperez.carles@gmail.com"}]
+dependencies = []
+name = "DotNetVersionize"
+requires-python = ">= 3.11"
+version = "0.1.0"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64","osx-arm64", "osx-64", "win-64"]
+
+[tool.pixi.pypi-dependencies]
+dotnetversionize = { path = ".", editable = true }
+build = "*"
+
+[tool.pixi.tasks]
+build = "python -m build --outdir dist/"
+
+[tool.pixi.feature.dev.dependencies]
+commitizen = "*"
+black = ">=25.12.0,<26"
+isort = ">=7.0.0,<8"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
+
+[tool.pixi.feature.py314.dependencies]
+python = "3.14.*"
+
+[tool.pixi.feature.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = {features = ["dev"], solve-group = "default"}
+dev = {features = ["dev", "test"], solve-group = "default"}
+py311 = ["py311", "default"]
+py312 = ["py312", "default"]
+py313 = ["py313", "default"]
+py314 = ["py314", "default"]
+test311 = ["py311", "test", "default"]
+test312 = ["py312", "test", "default"]
+test313 = ["py313", "test", "default"]
+test314 = ["py314", "test", "default"]
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | \.virtualenvs
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$major.$minor.$patch"
+changelog_file = "changelog.md"
+update_changelog_on_bump = true
+version_files= [
+    "dotnetversionize/__init__.py",
+    "pyproject.toml:version",]
+

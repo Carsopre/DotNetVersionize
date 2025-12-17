@@ -1,0 +1,81 @@
+name: ci-version-bumper
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  GH_TOKEN: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+
+jobs:
+  bump-versions:
+    name: "Automatic version bumping"
+    if: "${{ (startsWith(github.event.head_commit.message, 'feat')) || (startsWith(github.event.head_commit.message, 'fix')) || (startsWith(github.event.head_commit.message, 'release'))}}"
+    runs-on: ubuntu-latest
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+    defaults:
+      run:
+        working-directory: ./dotnet_geolabsuite
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+         
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Set AUTH values from token
+        run: echo "PAT_USER=$(gh api user | jq -r '.login')" >> "$GITHUB_ENV"
+  
+      - name: Set GIT identity
+        run: |
+          git config --global user.name '${{ env.PAT_USER }}'
+          git config --global user.email '${{ env.PAT_USER }}@users.noreply.github.com'
+
+      - name: Bump project versions
+        run: python version_bumper.py
+        if: "${{ (!startsWith(github.event.head_commit.message, 'release')) }}"
+      
+      - name: Bump product versions
+        run: python version_bumper.py --release
+        if: "${{ (startsWith(github.event.head_commit.message, 'release')) }}"
+
+      - name: Push changes
+        run: |
+          git push --force
+          git push --tags
+  
+  generate-release:
+    name: "Generate release from bump release tag"
+    if: "${{ (startsWith(github.event.head_commit.message, 'bump(release)')) }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+      - name: Set release variables
+        run: |
+          echo "RELEASE_TAG=$(git tag --sort=committerdate | grep -o 'v.*' | tail -1)" >> "$GITHUB_ENV"
+          echo "OLD_RELEASE_TAG=$(git tag --sort=committerdate | grep -o 'v.*' | tail -2 | head -1)" >> "$GITHUB_ENV"
+          echo "RELEASE_TITLE=$(git log -1 --pretty=format:%s | cut -d ':' -f 2 | awk '{$1=$1;print}')" >> "$GITHUB_ENV"
+      - name: Generate release
+        run: |
+          gh release create '${{ env.RELEASE_TAG }}' \
+            --verify-tag \
+            --latest \
+            --title '${{ env.RELEASE_TITLE }}' \
+            --generate-notes \
+            --notes-start-tag '${{ env.OLD_RELEASE_TAG }}'
