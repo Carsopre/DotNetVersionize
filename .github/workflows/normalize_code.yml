@@ -1,6 +1,9 @@
 name: ci-normalize-code
 
-on:  [push]
+on:
+  push:
+    branches:
+      - main
 
 env:
   AUTOFORMAT_COMMIT_MESSAGE: 'chore: autoformat with isort & black'
@@ -21,7 +24,7 @@ jobs:
         with:
           pixi-version: v0.49.0
           cache: true
-          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
       - name: Autoformat code
         env:
