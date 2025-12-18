@@ -1,8 +1,10 @@
 name: "Dotnet version bumper"
 description: "Automatically bump project and product versions based on commit messages."
 
-env:
-  GH_TOKEN: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+inputs: 
+  BYPASS_PROTECTED_BRANCHES_PAT:
+    description: "GitHub Token with permissions to push changes on protected branches."
+    required: true
 
 runs:
   using: "composite"
@@ -14,20 +16,15 @@ runs:
     contents: write
   defaults:
     run:
-      working-directory: ./dotnet_geolabsuite
+      working-directory: .
 
   steps:
     - name: Checkout source
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+        token: ${{ inputs.BYPASS_PROTECTED_BRANCHES_PAT }}
         
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-
     - name: Set AUTH values from token
       run: echo "PAT_USER=$(gh api user | jq -r '.login')" >> "$GITHUB_ENV"
 
@@ -36,12 +33,16 @@ runs:
         git config --global user.name '${{ env.PAT_USER }}'
         git config --global user.email '${{ env.PAT_USER }}@users.noreply.github.com'
 
+    - uses: prefix-dev/setup-pixi@v0.9.0
+      with:
+        pixi-version: v0.49.0
+
     - name: Bump project versions
-      run: python version_bumper.py
+      run: pixi run dotnetversionize
       if: "${{ (!startsWith(github.event.head_commit.message, 'release')) }}"
     
     - name: Bump product versions
-      run: python version_bumper.py --release
+      run: pixi run dotnetversionize --release
       if: "${{ (startsWith(github.event.head_commit.message, 'release')) }}"
 
     - name: Push changes
