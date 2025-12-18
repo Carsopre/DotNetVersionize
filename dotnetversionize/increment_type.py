@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
 
 from .common_definitions import (
     COMMIT_HEADER_BREAKING,
     COMMIT_HEADER_FEAT,
     COMMIT_HEADER_FIX,
 )
+from enum import Enum
 
 
 class IncrementType(Enum):
