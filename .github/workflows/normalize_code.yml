@@ -7,8 +7,8 @@ env:
       
 jobs:
   normalize-code:
-    if: ${{ !contains(github.event.head_commit.message, 'chore: autoformat isort & black') && (!contains(github.event.head_commit.message, 'bump:')) }}
     name: "Normalize code with internal standards"
+    if: ${{ (github.event.head_commit.message != 'chore: autoformat isort & black') && (!startsWith(github.event.head_commit.message, 'bump:')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out
