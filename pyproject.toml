@@ -19,6 +19,7 @@ build = "*"
 
 [tool.pixi.tasks]
 build = "python -m build --outdir dist/"
+dotnetversionize = "python -m dotnetversionize"
 
 [tool.pixi.feature.dev.dependencies]
 commitizen = "*"

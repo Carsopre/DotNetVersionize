@@ -1,0 +1,50 @@
+name: "DotNetVersionize Release Candidate Bumper"
+description: "Automatically bump release candidate versions on release branches and creates a Pull Request."
+
+# on:
+#   push:
+#     branches: [ "release/**" ]
+
+inputs: 
+  BYPASS_PROTECTED_BRANCHES_PAT:
+    description: "GitHub Token with permissions to push changes on protected branches."
+    required: true
+
+runs:
+  using: "composite"
+  # if: ${{ contains(github.ref, 'refs/heads/release/') && (!startsWith(github.event.head_commit.message, 'bump(release-candidate)'))}}
+  if: ${{ !startsWith(github.event.head_commit.message, 'bump(release-candidate)') }}
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write
+  defaults:
+    run:
+      working-directory: .
+
+  steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+        
+    - name: Set relevant variable values
+      run: |
+        echo "PAT_USER=$(gh api user | jq -r '.login')" >> "$GITHUB_ENV"
+        echo "BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD | cut -d "/" -f 2 | tr "-" " " | sed 's/.*/\u&/')" >> "$GITHUB_ENV"
+
+    - name: Set GIT identity
+      run: |
+        git config --global user.name '${{ env.PAT_USER }}'
+        git config --global user.email '${{ env.PAT_USER }}@users.noreply.github.com'
+
+    - uses: prefix-dev/setup-pixi@v0.9.0
+      with:
+        pixi-version: v0.49.0
+
+    - name: Bump project versions
+      run: pixi run dotnetversionize --release-candidate --release-title '${{ env.BRANCH_NAME }}'
+      
+    - name: Push changes
+      run: |
+        git push --force

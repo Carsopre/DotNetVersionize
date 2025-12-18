@@ -1,0 +1,55 @@
+name: "DotNetVersionize Create Release Candidate Pull Request"
+description: "Creates a Pull Request for bumped release candidate versions on release branches."
+
+# on:
+#   push:
+#     branches: [ "release/**" ]
+
+inputs: 
+  BYPASS_PROTECTED_BRANCHES_PAT:
+    description: "GitHub Token with permissions to push changes on protected branches."
+    required: true
+
+runs:
+  using: "composite"
+  # if: ${{ contains(github.ref, 'refs/heads/release/') && (!startsWith(github.event.head_commit.message, 'bump(release-candidate)'))}}
+  if: ${{ !startsWith(github.event.head_commit.message, 'bump(release-candidate)') }}
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write
+    pull-requests: write
+  defaults:
+    run:
+      working-directory: .
+
+  steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.BYPASS_PROTECTED_BRANCHES_PAT }}
+        
+    - name: Set relevant variable values
+      run: |
+        echo "PAT_USER=$(gh api user | jq -r '.login')" >> "$GITHUB_ENV"
+        echo "BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD | cut -d "/" -f 2 | tr "-" " " | sed 's/.*/\u&/')" >> "$GITHUB_ENV"
+
+    - name: Set GIT identity
+      run: |
+        git config --global user.name '${{ env.PAT_USER }}'
+        git config --global user.email '${{ env.PAT_USER }}@users.noreply.github.com'
+
+    - name: Check if PR exists
+      id: check
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --label "release" --json title --jq 'length')
+        if ((prs > 0)); then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+      
+    - name: Create Pull Request
+      if: '!steps.check.outputs.skip'
+      run: |
+        gh pr create --title "release: '${{ env.BRANCH_NAME }}'" --draft --body-file ".github/release_template.md" --label "release"
