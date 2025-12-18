@@ -1,7 +1,8 @@
-
 from dataclasses import dataclass
+
 from .common_definitions import VERSION_SUFFIX_RELEASE_CANDIDATE
 from .increment_type import IncrementType
+
 
 @dataclass
 class VersionNumber:
@@ -9,6 +10,7 @@ class VersionNumber:
     Dataclass to represent the `MAJOR`, `Minor`, `patch` version numbers and some useful
     methods to map and bump them.
     """
+
     major: int
     minor: int
     patch: int
@@ -38,7 +40,10 @@ class VersionNumber:
         Returns:
             bool: Is a release candidate version.
         """
-        return self.suffix.startswith(VERSION_SUFFIX_RELEASE_CANDIDATE) or self.release_candidate > 0
+        return (
+            self.suffix.startswith(VERSION_SUFFIX_RELEASE_CANDIDATE)
+            or self.release_candidate > 0
+        )
 
     @classmethod
     def from_tuple(cls, version_numbers: tuple[int, int, int]):
@@ -56,11 +61,9 @@ class VersionNumber:
             raise ValueError("A version number is composed of at least three values.")
 
         return cls(
-            major=version_numbers[0],
-            minor=version_numbers[1],
-            patch=version_numbers[2]
+            major=version_numbers[0], minor=version_numbers[1], patch=version_numbers[2]
         )
-    
+
     @classmethod
     def from_tag(cls, version_tag: str):
         """
@@ -76,25 +79,32 @@ class VersionNumber:
         """
         _parts = version_tag.split("v")[-1].split(".")
 
-        _patch_str_list = [_patch_digit for _patch_digit in takewhile(lambda x: x.isnumeric(), _parts[2])]
+        _patch_str_list = [
+            _patch_digit
+            for _patch_digit in takewhile(lambda x: x.isnumeric(), _parts[2])
+        ]
         _suffix = ""
         if len(_patch_str_list) < len(_parts[2]):
-            _suffix = _parts[2][len(_patch_str_list):]
+            _suffix = _parts[2][len(_patch_str_list) :]
 
         _mapped_version = cls(
             major=int(_parts[0]),
             minor=int(_parts[1]),
             patch=int("".join(_patch_str_list)),
-            suffix=_suffix
+            suffix=_suffix,
         )
 
-        if(VERSION_SUFFIX_RELEASE_CANDIDATE in version_tag):
-            _mapped_version.release_candidate = int(version_tag.split(f"{VERSION_SUFFIX_RELEASE_CANDIDATE}." )[-1])
+        if VERSION_SUFFIX_RELEASE_CANDIDATE in version_tag:
+            _mapped_version.release_candidate = int(
+                version_tag.split(f"{VERSION_SUFFIX_RELEASE_CANDIDATE}.")[-1]
+            )
             _mapped_version.suffix = ""
 
         return _mapped_version
 
-    def generate_bumped_version(self, product_version: str, as_release_candidate: bool) -> VersionNumber | None:
+    def generate_bumped_version(
+        self, product_version: str, as_release_candidate: bool
+    ) -> VersionNumber | None:
         """
         Generates a bumped version from a product compared to this instance.
         """

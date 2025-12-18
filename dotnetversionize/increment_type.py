@@ -1,6 +1,13 @@
 from __future__ import annotations
+
 from enum import Enum
-from .common_definitions import COMMIT_HEADER_BREAKING, COMMIT_HEADER_FEAT, COMMIT_HEADER_FIX
+
+from .common_definitions import (
+    COMMIT_HEADER_BREAKING,
+    COMMIT_HEADER_FEAT,
+    COMMIT_HEADER_FIX,
+)
+
 
 class IncrementType(Enum):
     """
@@ -12,6 +19,7 @@ class IncrementType(Enum):
     However, this definition helps us extend, if needed, the enum definition with version
     parts lower than patch such as 'pre-releases' ( `MAJOR.MINOR.PATCH.pre-release`).
     """
+
     MAJOR = 0
     MINOR = 1
     PATCH = 2
@@ -22,7 +30,7 @@ class IncrementType(Enum):
         """
         Maps a commit message to a valid increment type following the conventional
         commits standard.
-        Based on https://www.conventionalcommits.org/en/v1.0.0/ 
+        Based on https://www.conventionalcommits.org/en/v1.0.0/
 
         Args:
             commit_mssg (str): Message to map.
@@ -31,9 +39,11 @@ class IncrementType(Enum):
             IncrementType: Resulting mapped increment type.
         """
         _header = commit_mssg.split(":", maxsplit=1)[0]
-        
+
         # BREAKING CHANGE / '!' = MAJOR
-        if "!" in _header.split(":", maxsplit=1)[0] or _header.startswith(COMMIT_HEADER_BREAKING):
+        if "!" in _header.split(":", maxsplit=1)[0] or _header.startswith(
+            COMMIT_HEADER_BREAKING
+        ):
             return IncrementType.MAJOR
         else:
             # feat change = Minor
@@ -58,8 +68,16 @@ class IncrementType(Enum):
             IncrementType: Built-in increment corresponding to the provided commit messages.
         """
         # Map headers to increment type:
-        _min_increment = min(set((map(lambda x: IncrementType.detect_commit_increment(x).value, commit_mssgs))))
+        _min_increment = min(
+            set(
+                (
+                    map(
+                        lambda x: IncrementType.detect_commit_increment(x).value,
+                        commit_mssgs,
+                    )
+                )
+            )
+        )
         _found_increment = IncrementType(_min_increment)
         print(f"'{_found_increment.name}' increment detected.")
         return _found_increment
-

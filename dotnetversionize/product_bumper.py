@@ -1,9 +1,17 @@
-from .common_definitions import XML_TAG_FILE_VERSION, XML_TAG_VERSION, COMMIT_HEADER_RELEASE, COMMIT_HEADER_MERGE, COMMIT_HEADER_BUMP
-from .increment_type import IncrementType
-from .version_number import VersionNumber
+import subprocess
 from pathlib import Path
 from xml.etree import ElementTree as et
-import subprocess
+
+from .common_definitions import (
+    COMMIT_HEADER_BUMP,
+    COMMIT_HEADER_MERGE,
+    COMMIT_HEADER_RELEASE,
+    XML_TAG_FILE_VERSION,
+    XML_TAG_VERSION,
+)
+from .increment_type import IncrementType
+from .version_number import VersionNumber
+
 
 def product_bumper(root_dir: Path, increment_type: IncrementType, latest_git_tag: str):
     """
@@ -24,7 +32,7 @@ def product_bumper(root_dir: Path, increment_type: IncrementType, latest_git_tag
     if not _props_file:
         print(f"{_props_filename} not found in {root_dir}.")
         exit(code=1)
- 
+
     # Expected format is `vMAJOR.Minor.patch`
     # This step was already done, but for now we leave it as it is.
     _product_version = VersionNumber.from_tag(latest_git_tag)
@@ -38,9 +46,13 @@ def product_bumper(root_dir: Path, increment_type: IncrementType, latest_git_tag
     _commit_description_mssgs = []
     for _tag_to_bump in _tags_to_bump:
         _attribute_to_replace = _xml_props.find(f".//{_tag_to_bump}")
-        _bumped_version = _product_version.generate_bumped_version(_attribute_to_replace.text, args.release_candidate)
+        _bumped_version = _product_version.generate_bumped_version(
+            _attribute_to_replace.text, args.release_candidate
+        )
         if not _bumped_version:
-            print(f"Version already bumped for tag {_tag_to_bump}. Automatic bump not possible, try manually.")
+            print(
+                f"Version already bumped for tag {_tag_to_bump}. Automatic bump not possible, try manually."
+            )
             exit(code=1)
 
         # We can't get the release candidate from a tag (we do not publish them as of now)
@@ -51,7 +63,7 @@ def product_bumper(root_dir: Path, increment_type: IncrementType, latest_git_tag
         _commit_description_mssgs.append(_commit_description)
         _attribute_to_replace.text = str(_bumped_version)
     _xml_props.write(_props_file)
-    
+
     # Commit message
     # Last commit message (required to generate the bump one)
     _version_tag = _product_version.as_git_tag()
@@ -61,20 +73,33 @@ def product_bumper(root_dir: Path, increment_type: IncrementType, latest_git_tag
     else:
         # -3 because, merge-commit, bump-commit, last "content" commit
         _last_relevant_commits = _get_commit_list("-3")
+
         def valid_commit_header(commit_mssg: str) -> bool:
             _normalized = commit_mssg.lower().strip()
             if _normalized.startswith(COMMIT_HEADER_RELEASE.lower()):
                 return True
-            if _normalized.startswith(COMMIT_HEADER_MERGE.lower()) or _normalized.startswith(COMMIT_HEADER_BUMP.lower()):
+            if _normalized.startswith(
+                COMMIT_HEADER_MERGE.lower()
+            ) or _normalized.startswith(COMMIT_HEADER_BUMP.lower()):
                 return False
             return False
-        _release_title = next(filter(valid_commit_header, _last_relevant_commits), "Untitled release").split(":")[-1]
-        
+
+        _release_title = next(
+            filter(valid_commit_header, _last_relevant_commits), "Untitled release"
+        ).split(":")[-1]
+
     _bump_context = "release-candidate" if args.release_candidate else "release"
     _commit_mssg = f"bump({_bump_context}): [{_version_tag}] - {_release_title}"
     _commit_description = "\n".join(_commit_description_mssgs)
-    
-    _command = ["git", "commit", "-am", f"{_commit_mssg}", "-m", f"{_commit_description}"]
+
+    _command = [
+        "git",
+        "commit",
+        "-am",
+        f"{_commit_mssg}",
+        "-m",
+        f"{_commit_description}",
+    ]
     _result = subprocess.run(_command)
 
     if args.release_candidate:
