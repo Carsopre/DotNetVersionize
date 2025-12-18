@@ -67,6 +67,8 @@ exclude = '''
     | \.mypy_cache
     | \.tox
     | \.venv
+    | \.pixi
+    | \.pytest_cache
     | _build
     | buck-out
     | build
