@@ -1,6 +1,9 @@
 name: ci-run-pytest
 
-on:  [push]
+on:
+  push:
+    branches:
+      - main
     
 jobs:
   run-tests:

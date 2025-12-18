@@ -6,12 +6,12 @@ on:
       - main
 
 env:
-  AUTOFORMAT_COMMIT_MESSAGE: 'chore: autoformat isort & black'
+  AUTOFORMAT_COMMIT_MESSAGE: 'chore: autoformat with isort & black'
       
 jobs:
   normalize-code:
-    if: "${{ (!startsWith(github.event.head_commit.message, 'chore: autoformat isort & black')) && (!startsWith(github.event.head_commit.message, 'bump:')) }}"
     name: "Normalize code with internal standards"
+    if: "${{ (!startsWith(github.event.head_commit.message, 'chore: autoformat with isort & black')) && (!startsWith(github.event.head_commit.message, 'bump:')) }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -24,7 +24,7 @@ jobs:
         with:
           pixi-version: v0.49.0
           cache: true
-          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
       - name: Autoformat code
         env:
