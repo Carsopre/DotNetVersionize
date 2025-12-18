@@ -2062,8 +2062,8 @@ packages:
   timestamp: 1761813872696
 - pypi: ./
   name: dotnetversionize
-  version: 0.1.0
-  sha256: 01b8bea4946c668f60aca0617a2b84c0ed277b66fbe0d83bb78f2f51f7b53592
+  version: 0.2.0
+  sha256: 45103cc9b6a59b1cc33aa3caeb07b8b51a573ff28ed9b99915f2afc89ad2dcb3
   requires_python: '>=3.11'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.3.1-pyhd8ed1ab_0.conda
