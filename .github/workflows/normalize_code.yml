@@ -3,12 +3,12 @@ name: ci-normalize-code
 on:  [push]
 
 env:
-  AUTOFORMAT_COMMIT_MESSAGE: 'chore: autoformat isort & black'
+  AUTOFORMAT_COMMIT_MESSAGE: 'chore: autoformat with isort & black'
       
 jobs:
   normalize-code:
     name: "Normalize code with internal standards"
-    if: ${{ (github.event.head_commit.message != 'chore: autoformat isort & black') && (!startsWith(github.event.head_commit.message, 'bump:')) }}
+    if: "${{ (!startsWith(github.event.head_commit.message, 'chore: autoformat with isort & black')) && (!startsWith(github.event.head_commit.message, 'bump:')) }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check out
